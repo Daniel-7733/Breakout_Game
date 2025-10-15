@@ -10,18 +10,20 @@ class Brick:
         self.br.speed(100)
 
         self.layer_all_bricks()
+        self.br.hideturtle() # this one remove the turtle after drawing
+
 
     def brick(self, x:int=0, y:int=0) -> None:
-        self.br.up() # take the pen up to now draw the line when it changes the position
+        self.br.up()
         self.br.setpos(x, y)
-        self.br.down() # take the pen down to draw the shape.
+        self.br.down()
 
         self.br.color(self.BRICK_COLOR)
         self.br.begin_fill()
         self.br.pencolor("#221824")
         self.br.width(5) # Making the lines between the bricks bigger
 
-        for i in range(4):
+        for i in range(4): # By change the number inside the range function, we'll get new shapes
             if i % 2 == 0:
                 self.br.forward(100)
             else:
@@ -31,6 +33,6 @@ class Brick:
         self.br.end_fill()
 
     def layer_all_bricks(self) -> None:
-        for i in range(0, 300, 50):
+        for i in range(0, 250, 50):
             for j in range(-400, 400, 100):
                 self.brick(j, i)

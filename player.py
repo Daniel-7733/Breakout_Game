@@ -5,6 +5,7 @@ class Player:
     def __init__(self) -> None:
         self.player = Turtle()
         self.PLAYER_COLOR: str = "#eef074"
+        self.PLAYER_SPEED: int = 100
         self.player.speed(20)
         self.draw_racket()
 
@@ -24,10 +25,10 @@ class Player:
         """Here the function receive the x coordinate & and then we subtract 20 from it."""
         self.player.penup()
         current_x = self.player.xcor()
-        self.player.setx(current_x - 20)
+        self.player.setx(current_x - self.PLAYER_SPEED)
 
     def move_right(self) -> None:
         """Here the function receive the x coordinate & and then we add 20 from it."""
         self.player.penup()
         current_x = self.player.xcor()
-        self.player.setx(current_x + 20)
+        self.player.setx(current_x + self.PLAYER_SPEED)
