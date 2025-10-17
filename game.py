@@ -14,8 +14,9 @@ class Game:
         self.main_color: str = "#FF7B00"
         self.game_font: tuple[str, int, str] = ("font/Pixeltype.ttf", 16, "bold") # Font is not working
 
+        self.screen.screensize(400, 300, self.BACKGROUND)
         self.ga.title("Breakout Game")
-        self.ga.Screen().bgcolor(self.BACKGROUND)
+        # self.ga.Screen().bgcolor(self.BACKGROUND)
 
         self.rectangle()
         self.text_writer(text="Score: {Add The score}", align="left", x=-360, y=310)
