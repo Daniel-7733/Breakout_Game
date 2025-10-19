@@ -18,13 +18,14 @@ class Game:
         self.ga.title("Breakout Game")
         # self.ga.Screen().bgcolor(self.BACKGROUND)
 
-        self.rectangle()
+        # self.game_border()
         self.text_writer(text="Score: {Add The score}", align="left", x=-360, y=310)
         self.text_writer(text="00:00:00", align="right", x=280, y=310) # I should connect my function to timer
         self.ga.hideturtle() # this one remove the turtle after drawing
 
         self.player: Player = Player()
         self.ball: Ball = Ball()
+        self.ball.set_paddle(self.player.player) # Pass the actual turtle of the paddle
         self.brick: Brick = Brick()
 
         self.ball.constant_movement()
@@ -40,16 +41,16 @@ class Game:
 
 
 
-    def rectangle(self) -> None:
-        self.ga.speed(300)
-        self.ga.penup()
-        self.ga.goto(-420, -400)
-        self.ga.pendown()
-        self.ga.color(self.main_color)
-
-        self.ga.left(90)
-        for i in range(2):
-            self.ga.forward(770)
-            self.ga.right(90)
-            self.ga.forward(840)
-            self.ga.right(90)
+    # def game_border(self) -> None:
+    #     self.ga.speed(300)
+    #     self.ga.penup()
+    #     self.ga.goto(-420, -400)
+    #     self.ga.pendown()
+    #     self.ga.color(self.main_color)
+    #
+    #     self.ga.left(90)
+    #     for i in range(2):
+    #         self.ga.forward(770)
+    #         self.ga.right(90)
+    #         self.ga.forward(840)
+    #         self.ga.right(90)

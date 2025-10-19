@@ -3,6 +3,7 @@ from turtle import Turtle
 
 class Ball:
     def __init__(self) -> None:
+        self.paddle = None
         self.ball = Turtle()
         self.BALL_COLOR: str = "#f0f255"
 
@@ -39,6 +40,10 @@ class Ball:
         self.ball.getscreen().ontimer(self.constant_movement, 20) # schedule next tick
 
 
+    def set_paddle(self, paddle_turtle):
+        self.paddle = paddle_turtle
+
+
     def movement_law(self):
         """Rules: Balls can't pass the boarder, and it should be inside the windows not outside"""
         screen = self.ball.getscreen()
@@ -65,5 +70,28 @@ class Ball:
             self.vy *= -1
             self.ball.sety(max(min(y, top), bottom))
 
+        # --- Game over if ball falls below bottom ---
         if y <= bottom:
             print("Game Over")
+            # TODO: self.ball_reset(); self.vy = abs(self.vy)
+            return
+
+        # --- Paddle collision ---
+        if self.paddle is not None and self.vy < 0: # only when falling
+            px, py = self.paddle.xcor(), self.paddle.ycor()
+
+            # read paddle size from shapesize
+            # and returns (stretch_wid, stretch_len, outline)
+            stretch_wid, stretch_len, *_ = self.paddle.shapesize()
+            paddle_width: int = 20 * stretch_len
+            paddle_height: int = 20 * stretch_wid
+
+            paddle_left: float  = px - paddle_width / 2
+            paddle_right: float  = px + paddle_height / 2
+            paddle_top: float  = px + paddle_height / 2
+
+            ball_bottom: float  = y - self.radius # Ball's bottom edge:
+
+            if (paddle_left - self.radius) <= x <= (paddle_right + self.radius) and (ball_bottom <= paddle_top):
+                self.vy *= -1 # reflect vertically
+                self.ball.sety(paddle_top + self.radius) # position fix: put ball just above the paddle to avoid sticking
