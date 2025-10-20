@@ -31,8 +31,8 @@ class Ball:
     def constant_movement(self) -> None:
         """Force the ball to constantly move"""
         # update position using velocity
-        new_x = self.ball.xcor() + self.vx
-        new_y = self.ball.ycor() + self.vy
+        new_x: float = self.ball.xcor() + self.vx
+        new_y: float = self.ball.ycor() + self.vy
         self.ball.goto(new_x, new_y)
 
         self.movement_law()
@@ -66,7 +66,7 @@ class Ball:
             self.ball.setx(max(min(x, right), left))
 
         # bounce vertically
-        if y <= bottom or y >= top:
+        if y <= bottom or y >= top: # TODO: I'll remove this part later 'y <= bottom or'
             self.vy *= -1
             self.ball.sety(max(min(y, top), bottom))
 
