@@ -29,9 +29,9 @@ class Paddle:
 
     def clamp_x(self, x: float) -> float :
         """
-        This function make a boundaries in X-axel (-x, x) and won't let paddle go beyond certain number.
-        :param x: float number on the X-axel
-        :return: A valid float number on X-axel
+        This function make a boundaries in X-axis (-x, x) and won't let paddle go beyond certain number.
+        :param x: float number on the X-axis
+        :return: A valid float number on X-axis
         """
 
         half_width: float = self.screen.window_width() / 2

@@ -8,9 +8,9 @@ class Ball:
         self.BALL_COLOR: str = "#f0f255"
 
         # velocity (pixels per tick)
-        self.vx = 3.0
-        self.vy = 3.0
-        self.radius = 10  # default turtle "circle" is about 20x20 px
+        self.vx: float = 3.0
+        self.vy: float = 3.0
+        self.radius: int = 10  # default turtle "circle" is about 20x20 px
 
         self.draw_ball()
 
@@ -40,11 +40,11 @@ class Ball:
         self.ball.getscreen().ontimer(self.constant_movement, 20) # schedule next tick
 
 
-    def set_paddle(self, paddle_turtle):
+    def set_paddle(self, paddle_turtle) -> None:
         self.paddle = paddle_turtle
 
 
-    def movement_law(self):
+    def movement_law(self) -> None:
         """Rules: Balls can't pass the boarder, and it should be inside the windows not outside"""
         screen = self.ball.getscreen()
         # get current window dimensions
