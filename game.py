@@ -1,7 +1,7 @@
 import turtle
 from time import sleep
 from turtle import Screen
-from player import Player
+from paddle import Paddle
 from ball import Ball
 from brick import Brick
 
@@ -23,11 +23,12 @@ class Game:
         self.writer.color(self.main_color)
 
         self.text_writer(text="Score: 0", align="left", x=-360, y=310)
+        self.text_writer(text="Level: 0", align="right", x=360, y=310) # This one will remove the Score writing!!!!
 
-        self.player: Player = Player()
+        self.paddle: Paddle = Paddle()
         self.brick: Brick = Brick()
         self.ball: Ball = Ball()
-        self.ball.set_paddle(self.player.player)  # Pass the actual turtle of the paddle
+        self.ball.set_paddle(self.paddle.paddle)  # Pass the actual turtle of the paddle
 
         self.ball.constant_movement()
 
