@@ -1,54 +1,50 @@
 from turtle import Turtle
-import turtle
 
 
 class Paddle:
+    """
+    Simple left/right paddle with boundary clamps, using a stretched square.
+    """
     def __init__(self) -> None:
-        self.half_paddle: int | None = None
-        self.screen = turtle.Screen()
         self.paddle: Turtle = Turtle()
-        self.paddle_color: str = "#eef074"
-        self.paddle.speed(100)
-        self.paddle_shape()
-        self.step: int = 100 # Speed of the paddle
-
-        self.paddle.screen.onkey(self.move_left, "Left")
-        self.paddle.screen.onkey(self.move_right, "Right")
-        self.paddle.screen.listen()
-
-
-    def paddle_shape(self) -> None:
-        """Here I use turtle itself to make the rectangle"""
         self.paddle.shape("square")
-        self.paddle.color(self.paddle_color)
-        self.paddle.shapesize(stretch_wid=1, stretch_len=5)
+        self.paddle.color("#6bc2ff")
         self.paddle.penup()
-        self.paddle.setpos(0, -300)
-        self.half_paddle: int = 5 * 10
-
-
-    def clamp_x(self, x: float) -> float :
-        """
-        This function make a boundaries in X-axis (-x, x) and won't let paddle go beyond certain number.
-        :param x: float number on the X-axis
-        :return: A valid float number on X-axis
-        """
-
-        half_width: float = self.screen.window_width() / 2
-        left: float = -half_width + self.half_paddle
-        right: float = half_width - self.half_paddle
-        return max(min(x, right), left)
-
+        self.paddle.shapesize(stretch_wid=1.0, stretch_len=6.0) # height ~20px * 1, width ~20px * 6 => ~120px wide
+        self.paddle.speed(0)
+        self.paddle.goto(0, -320)
+        self.step: int = 30  # movement config: pixels per keypress (Speed)
 
     def move_left(self) -> None:
-        """When the left arrow-button is clicked, function will push the paddle to the left."""
-        new_x: float = self.paddle.xcor() - self.step
-        new_x: float = self.clamp_x(new_x)
+        """
+        Move to left when a key press by user
+        :return: None
+        """
+        screen = self.paddle.getscreen()
+        half_w: float = screen.window_width() / 2
+        width_px: float = 20 * self.paddle.shapesize()[1]
+        left_limit: float = -half_w + width_px / 2
+        new_x: float = max(self.paddle.xcor() - self.step, left_limit)
         self.paddle.setx(new_x)
-
 
     def move_right(self) -> None:
-        """When the right arrow-button is clicked, function will push the paddle to the right."""
-        new_x: float = self.paddle.xcor() + self.step
-        new_x: float = self.clamp_x(new_x)
+        """
+        Move to right when a key press by user
+        :return: None
+        """
+        screen = self.paddle.getscreen()
+        half_w: float = screen.window_width() / 2
+        width_px: float = 20 * self.paddle.shapesize()[1]
+        right_limit: float = half_w - width_px / 2
+        new_x: float = min(self.paddle.xcor() + self.step, right_limit)
         self.paddle.setx(new_x)
+
+    def paddle_position(self) -> tuple[float, float, float, float]:
+        """
+        Reveal position of paddle.
+        :return: tuple(paddle x, paddle y, width px, height px)
+        """
+        sw, sl, *_ = self.paddle.shapesize()
+        width_px: float = 20 * sl
+        height_px: float = 20 * sw
+        return self.paddle.xcor(), self.paddle.ycor(), width_px, height_px
