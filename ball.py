@@ -1,57 +1,122 @@
 from turtle import Turtle
+from typing import TypedDict
 
+class BrickDict(TypedDict):
+    t: Turtle
+    half_w: float
+    half_h: float
+    alive: bool
 
 class Ball:
+    """
+    Velocity-based ball movement (vx, vy) with:
+    - wall bounces
+    - paddle bounce (AABB)
+    - brick collisions (AABB; removes one brick per tick)
+    """
     def __init__(self) -> None:
-        self.paddle = None
-        self.ball = Turtle()
-        self.BALL_COLOR: str = "#f0f255"
+        self.ball: Turtle = Turtle()
+        self.ball.shape("circle")
+        self.ball.color("#f0f255")
+        self.ball.penup()
+        self.ball.speed(0)  # fastest draw
 
-        # velocity (pixels per tick)
+        # motion
         self.vx: float = 3.0
         self.vy: float = 3.0
-        self.radius: int = 10  # default turtle "circle" is about 20x20 px
+        self.radius: int = 10  # default circle ~20px diameter
 
-        self.draw_ball()
+        # external refs
+        self.paddle: Turtle | None = None
+        self.bricks: list[BrickDict] = [] # list of dicts from Brick.get_bricks(): [{"t": Turtle, "half_w": float, "half_h": float, "alive": bool}]
 
-
-    def draw_ball(self) -> None:
-        """Making the ball"""
-        self.ball.shape("circle")
-        self.ball.color(self.BALL_COLOR)
-        self.ball.penup()
         self.ball_reset()
 
+    # --- wiring from Game ---
+    def set_paddle(self, paddle_turtle: Turtle) -> None:
+        """
+        Connect the paddle's Turtle instance to the ball.
 
-    def ball_reset(self):
-        """Reset the ball position to the original position"""
-        self.ball.goto(x=0, y=-280)
+        This allows the ball to access the paddle for collision detection
+        or position tracking during gameplay.
 
-
-    def constant_movement(self) -> None:
-        """Force the ball to constantly move"""
-        # update position using velocity
-        new_x: float = self.ball.xcor() + self.vx
-        new_y: float = self.ball.ycor() + self.vy
-        self.ball.goto(new_x, new_y)
-
-        self.movement_law()
-
-        self.ball.getscreen().ontimer(self.constant_movement, 20) # schedule next tick
-
-
-    def set_paddle(self, paddle_turtle) -> None:
+        :param paddle_turtle: (Turtle) The Turtle object representing the paddle.
+        :return: None
+        """
         self.paddle = paddle_turtle
 
+    def set_bricks(self, bricks: list[BrickDict]):
+        """
+        Assign the list of bricks that the ball can interact with.
 
-    def movement_law(self) -> None:
-        """Rules: Balls can't pass the boarder, and it should be inside the windows not outside"""
+        This method is typically called by the Game class to provide the
+        ball with references to all active brick objects, enabling collision
+        detection and brick removal logic.
+
+        :param bricks: (list[BrickDict]): A list of brick dictionaries, where each
+                dictionary contains the brick's Turtle instance, dimensions,
+                and alive state.
+                [{"t": Turtle, "half_w": float, "half_h": float, "alive": bool}]
+        :return: None
+        """
+        self.bricks = bricks or []
+
+    # --- control ---
+    def ball_reset(self) -> None:
+        """
+        Reset the ball position
+        :return: None
+        """
+        self.ball.goto(0, -280)
+        self.vy = abs(self.vy) # ensure upward start after reset
+
+    def start(self) -> None:
+        """
+        Paddle & ball start at the same time after the bricks completed. (20 Millisecond)
+        :return: None
+        """
+        self.ball.getscreen().ontimer(self._tick, 20) # kick off the timer loop
+
+    def _tick(self) -> None:
+        """
+        Update the ball's position and handle one frame of game logic.
+
+        This method moves the ball based on its current velocity, checks for
+        collisions with walls, the paddle, and bricks, and schedules the next
+        frame update using `ontimer()`.
+
+        It is called repeatedly (about every 20 ms) to animate the game loop.
+
+        Returns:
+            None
+        """
+        self.ball.goto(self.ball.xcor() + self.vx, self.ball.ycor() + self.vy) # update position
+
+        # collisions
+        self._handle_walls() # may clamp and invert
+        if not self._handle_game_over():  # returns True if it reset / ended
+            self._handle_paddle()
+            self._handle_bricks()
+
+        # schedule next frame
+        self.ball.getscreen().ontimer(self._tick, 20)
+
+    # --- collisions ---
+    def _handle_walls(self) -> None:
+        """
+        Detect and handle collisions between the ball and the screen boundaries.
+
+        Reflects the ball's velocity when it hits the left, right, or top walls,
+        and updates the internal bottom limit for detecting when the ball falls
+        below the visible playfield.
+
+        Returns:
+            None
+        """
         screen = self.ball.getscreen()
-        # get current window dimensions
         half_w: float = screen.window_width() / 2
         half_h: float = screen.window_height() / 2
 
-        # playable bounds (keep the ball fully inside)
         left: float = -half_w + self.radius
         right: float =  half_w - self.radius
         bottom: float = -half_h + self.radius
@@ -59,39 +124,115 @@ class Ball:
 
         x, y = self.ball.xcor(), self.ball.ycor()
 
-        # bounce horizontally
         if x <= left or x >= right:
             self.vx *= -1
-            # clamp to avoid sticking outside
             self.ball.setx(max(min(x, right), left))
 
-        # bounce vertically
-        if y <= bottom or y >= top: # TODO: I'll remove this part later 'y <= bottom or'
+        if y >= top:
             self.vy *= -1
-            self.ball.sety(max(min(y, top), bottom))
+            self.ball.sety(top)
 
-        # --- Game over if ball falls below bottom ---
-        if y <= bottom:
+        # store for game-over check
+        self._bottom_limit: float = bottom
+
+    def _handle_game_over(self) -> bool:
+        """
+        Check if the ball has fallen below the visible playfield.
+
+        If the ball passes below the bottom limit, this method triggers a
+        game-over condition, prints a message, and resets the ball's position.
+
+        Returns:
+            bool: True if a game-over event occurred (the ball was reset),
+                  False otherwise.
+        """
+        # fell below the visible playfield?
+        if self.ball.ycor() <= self._bottom_limit:
             print("Game Over")
-            # TODO: self.ball_reset(); self.vy = abs(self.vy)
+            # simple reset (you can call back to Game for score/lives)
+            self.ball_reset()
+            return True
+        return False
+
+    def _handle_paddle(self) -> None:
+        """
+        Detect and respond to collisions between the ball and the paddle.
+
+        When the ball is moving downward and overlaps the paddle's area,
+        it reflects vertically and applies a small horizontal adjustment
+        ("english") based on where it hit the paddle to vary the bounce angle.
+
+        Returns:
+            None
+        """
+        if self.paddle is None or self.vy >= 0:
+            return  # no paddle or ball is going up
+
+        px, py = self.paddle.xcor(), self.paddle.ycor()
+        sw, sl, *_ = self.paddle.shapesize()
+        paddle_width: float = 20 * sl
+        paddle_height: float = 20 * sw
+
+        paddle_left: float = px - paddle_width / 2
+        paddle_right: float = px + paddle_width / 2
+        paddle_top: float = py + paddle_height / 2
+
+        x, y = self.ball.xcor(), self.ball.ycor()
+        ball_bottom: float = y - self.radius
+
+        # horizontally over paddle & bottom is at or below the top edge
+        if (paddle_left - self.radius) <= x <= (paddle_right + self.radius) and ball_bottom <= paddle_top and y > py:
+            self.vy *= -1
+            self.ball.sety(paddle_top + self.radius) # place the ball just above to avoid double-collision next frame
+
+            hit_offset = (x - px) / (paddle_width / 2)  # -1..1
+            self.vx += hit_offset * 0.8  # tweak to taste
+            # cap vx a bit so it doesn't explode
+            self.vx: float = max(min(self.vx, 8), -8)
+
+    def _handle_bricks(self) -> None:
+        """
+        Detect and handle collisions between the ball and bricks.
+
+        Checks all active (alive) bricks for overlap with the ball and
+        reflects the ball's velocity based on the side of impact.
+        When a brick is hit, it becomes hidden and marked as inactive.
+
+        Only one brick collision is processed per frame to prevent
+        multiple hits at once.
+
+        Returns:
+            None
+        """
+        if not self.bricks:
             return
 
-        # --- Paddle collision ---
-        if self.paddle is not None and self.vy < 0: # only when falling
-            px, py = self.paddle.xcor(), self.paddle.ycor()
+        x, y = self.ball.xcor(), self.ball.ycor()
 
-            # read paddle size from shapesize
-            # and returns (stretch_wid, stretch_len, outline)
-            stretch_wid, stretch_len, *_ = self.paddle.shapesize()
-            paddle_width: int = 20 * stretch_len
-            paddle_height: int = 20 * stretch_wid
+        for b in self.bricks:
+            if not b["alive"]:
+                continue
 
-            paddle_left: float  = px - paddle_width / 2
-            paddle_right: float  = px + paddle_height / 2
-            paddle_top: float  = px + paddle_height / 2
+            bt: Turtle = b["t"]
+            bx, by = bt.xcor(), bt.ycor()
 
-            ball_bottom: float  = y - self.radius # Ball's bottom edge:
+            # AABB vs circle-ish overlap
+            if abs(x - bx) <= (b["half_w"] + self.radius) and abs(y - by) <= (b["half_h"] + self.radius):
+                # compute overlap in each axis to decide reflection axis
+                overlap_x: float = (b["half_w"] + self.radius) - abs(x - bx)
+                overlap_y: float = (b["half_h"] + self.radius) - abs(y - by)
 
-            if (paddle_left - self.radius) <= x <= (paddle_right + self.radius) and (ball_bottom <= paddle_top):
-                self.vy *= -1 # reflect vertically
-                self.ball.sety(paddle_top + self.radius) # position fix: put ball just above the paddle to avoid sticking
+                if overlap_y < overlap_x:
+                    self.vy *= -1  # hit top/bottom face
+                else:
+                    self.vx *= -1  # hit left/right face
+
+
+                bt.hideturtle() # remove brick
+                b["alive"]: bool = False
+                # slight nudge out to avoid re-hitting same brick next frame
+                if overlap_y < overlap_x:
+                    self.ball.sety(by + (b["half_h"] + self.radius) * (1 if y >= by else -1))
+                else:
+                    self.ball.setx(bx + (b["half_w"] + self.radius) * (1 if x >= bx else -1))
+                break  # only one brick per frame
