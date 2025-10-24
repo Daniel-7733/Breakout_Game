@@ -1,79 +1,62 @@
-import turtle
-from time import sleep
 from turtle import Screen
 from paddle import Paddle
 from ball import Ball
 from brick import Brick
 
 
+
+
 class Game:
+    """
+    Main controller class for the Breakout game.
+
+    This class sets up the game window, initializes all core objects
+    (paddle, ball, and brick grid), and manages user input bindings.
+
+    Responsibilities:
+    - Configure the main window and visual theme.
+    - Instantiate and connect the Paddle, Ball, and Brick systems.
+    - Wire input controls for player movement.
+    - Start the main game loop when requested.
+    """
+
     def __init__(self) -> None:
-        self.ga = turtle
         self.screen = Screen()
-        self.BACKGROUND: str = "#221824"
-        self.main_color: str = "#FF7B00"
-        self.game_font: tuple[str, int, str] = ("Pixeltype", 20, "bold") # Font is not working
+        self.screen.title("Breakout (Turtle)")
+        # fixed window size; ball uses dynamic window_width/height for bounds
+        self.screen.setup(width=900, height=900)
+        self.screen.bgcolor("#111218")
 
-        self.screen.screensize(400, 300, self.BACKGROUND)
-        self.ga.title("Breakout Game")
-
-        self.writer = turtle.Turtle()
-        self.writer.hideturtle()
-        self.writer.penup()
-        self.writer.color(self.main_color)
-
-        self.text_writer(text="Score: 0", align="left", x=-360, y=310)
-        self.text_writer(text="Level: 0", align="right", x=360, y=310) # This one will remove the Score writing!!!!
-
+        # Create game objects
         self.paddle: Paddle = Paddle()
-        self.brick: Brick = Brick()
         self.ball: Ball = Ball()
-        self.ball.set_paddle(self.paddle.paddle)  # Pass the actual turtle of the paddle
+        self.brick: Brick = Brick()
 
-        self.ball.constant_movement()
+        # Wire references
+        self.ball.set_paddle(self.paddle.paddle)
+        self.ball.set_bricks(self.brick.get_bricks())
 
-        self.ga.mainloop()
+        # Input
+        # right and left arrow in keyboard
+        self.screen.listen()
+        self.screen.onkeypress(self.paddle.move_left, "Left")
+        self.screen.onkeypress(self.paddle.move_right, "Right")
+        # WASD:
+        self.screen.onkeypress(self.paddle.move_left, "a")
+        self.screen.onkeypress(self.paddle.move_right, "d")
 
-    def text_writer(self, text: str, align: str, x: int, y: int) -> None:
-        self.writer.goto(x, y)
-        self.writer.clear()
-        self.writer.write(text, align=align, font=self.game_font)
+    def start(self) -> None:
+        """
+        Start the Breakout game.
 
+        Launches the ball movement and enters the Turtle event loop.
+        This function blocks further execution until the window is closed.
 
-    def game_timer(self) -> None: # I don't think I will use this function because the while loop will interrupt the game loop
-        """This function will count time from millisecond to minutes"""
-        millisecond: int = 0
-        second: int = 0
-        minute: int = 0
-        timer: str = f"{minute:02}:{second:02}:{millisecond:02}"
+        Typical usage:
+            >>> game = Game()
+            >>> game.start()
 
-        while True:
-            sleep(0.001)
-            if minute >= 3:
-                print("A chicken can do better then you")
-
-            self.text_writer(text=timer, align="right", x=280, y=310)
-            millisecond += 1
-
-            if millisecond == 1000:
-                second += 1
-                millisecond = 0
-            if second == 60:
-                minute += 1
-                second = 0
-
-
-    def game_border(self) -> None:
-        """Drawing the game border"""
-        self.ga.speed(300)
-        self.ga.penup()
-        self.ga.goto(-420, -400)
-        self.ga.pendown()
-        self.ga.color(self.main_color)
-
-        self.ga.left(90)
-        for i in range(2):
-            self.ga.forward(770)
-            self.ga.right(90)
-            self.ga.forward(840)
-            self.ga.right(90)
+        :return: None
+        """
+        self.ball.start()
+        self.screen.mainloop()

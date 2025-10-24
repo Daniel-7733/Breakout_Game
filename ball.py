@@ -1,11 +1,4 @@
 from turtle import Turtle
-from typing import TypedDict
-
-class BrickDict(TypedDict):
-    t: Turtle
-    half_w: float
-    half_h: float
-    alive: bool
 
 class Ball:
     """
@@ -28,7 +21,7 @@ class Ball:
 
         # external refs
         self.paddle: Turtle | None = None
-        self.bricks: list[BrickDict] = [] # list of dicts from Brick.get_bricks(): [{"t": Turtle, "half_w": float, "half_h": float, "alive": bool}]
+        self.bricks: list[dict[str, Turtle | float | bool]] = [] # list of dicts from Brick.get_bricks(): [{"t": Turtle, "half_w": float, "half_h": float, "alive": bool}]
 
         self.ball_reset()
 
@@ -45,7 +38,7 @@ class Ball:
         """
         self.paddle = paddle_turtle
 
-    def set_bricks(self, bricks: list[BrickDict]):
+    def set_bricks(self, bricks: list[dict[str, Turtle | float | bool]]) -> None:
         """
         Assign the list of bricks that the ball can interact with.
 
