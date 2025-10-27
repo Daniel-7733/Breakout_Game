@@ -231,6 +231,7 @@ class Ball:
                     self.vx *= -1  # hit left/right face
 
                 self.score += 1 # Adding score to the game when ball hit the bricks
+                self.ball.getscreen().ontimer(self.score_font, 20)
 
                 bt.hideturtle() # remove brick
                 b["alive"]: bool = False
@@ -240,3 +241,19 @@ class Ball:
                 else:
                     self.ball.setx(bx + (b["half_w"] + self.radius) * (1 if x >= bx else -1))
                 break  # only one brick per frame
+
+
+    def score_font(self) -> None:
+        """
+        This function will make new Turtle object for writing the Score
+
+        :return: None
+        """
+        t = Turtle()
+        t.speed(0)
+        t.hideturtle()
+        t.color("#f0f255")
+        t.penup()
+        t.goto(-350, 350)
+        t.clear() # TODO: (Problem) The problem is that this does not clean the previous writing; It over writing on it
+        t.write(f"Score: {self.score}", align="left", font=("Pixeltype", 30, "bold"))
