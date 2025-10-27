@@ -19,11 +19,19 @@ class Ball:
         self.vy: float = 3.0
         self.radius: int = 10  # default circle ~20px diameter
 
+        # Score
+        self.score: int = 0
+
+        self.game_over: bool = True # I'll use this for stoping the game after Game over pop up at the screen
+        if not self._handle_game_over:
+            self.game_over = False
+
         # external refs
         self.paddle: Turtle | None = None
         self.bricks: list[dict[str, Turtle | float | bool]] = [] # list of dicts from Brick.get_bricks(): [{"t": Turtle, "half_w": float, "half_h": float, "alive": bool}]
 
         self.ball_reset()
+
 
     # --- wiring from Game ---
     def set_paddle(self, paddle_turtle: Turtle) -> None:
@@ -141,7 +149,9 @@ class Ball:
         """
         # fell below the visible playfield?
         if self.ball.ycor() <= self._bottom_limit:
-            print("Game Over")
+            self.ball.goto(0, 0)
+            self.ball.clear()
+            self.ball.write("Game Over", align="center", font=("Pixeltype", 50, "bold"))
             # simple reset (you can call back to Game for score/lives)
             self.ball_reset()
             return True
@@ -220,6 +230,7 @@ class Ball:
                 else:
                     self.vx *= -1  # hit left/right face
 
+                self.score += 1 # Adding score to the game when ball hit the bricks
 
                 bt.hideturtle() # remove brick
                 b["alive"]: bool = False
