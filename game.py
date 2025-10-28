@@ -1,4 +1,4 @@
-from turtle import Screen
+from turtle import Screen, _Screen
 from paddle import Paddle
 from ball import Ball
 from brick import Brick
@@ -21,7 +21,7 @@ class Game:
     """
 
     def __init__(self) -> None:
-        self.screen = Screen()
+        self.screen: _Screen = Screen()
         self.screen.title("Breakout (Turtle)")
         # fixed window size; ball uses dynamic window_width/height for bounds
         self.screen.setup(width=900, height=900)
@@ -29,7 +29,7 @@ class Game:
 
         # Create game objects
         self.paddle: Paddle = Paddle()
-        self.ball: Ball = Ball()
+        self.ball: Ball = Ball(screen=self.screen)
         self.brick: Brick = Brick()
 
         # Wire references

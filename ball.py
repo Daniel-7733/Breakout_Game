@@ -1,4 +1,5 @@
-from turtle import Turtle
+from turtle import Turtle, _Screen, TurtleScreen
+
 
 class Ball:
     """
@@ -7,20 +8,35 @@ class Ball:
     - paddle bounce (AABB)
     - brick collisions (AABB; removes one brick per tick)
     """
-    def __init__(self) -> None:
+    def __init__(self, screen: _Screen) -> None:
         self.ball: Turtle = Turtle()
         self.ball.shape("circle")
         self.ball.color("#f0f255")
         self.ball.penup()
         self.ball.speed(0)  # fastest draw
 
+        # font
+        self.hub_font: str = "Pixeltype"
+
         # motion
-        self.vx: float = 3.0
-        self.vy: float = 3.0
+        self.vx: float = 100/20 # v = x/t 100/20
+        self.vy: float = 100/20 # v = x/t 100/20
         self.radius: int = 10  # default circle ~20px diameter
 
         # Score
         self.score: int = 0
+
+        # This is for Score pen that write on top of the screen
+        self.score_pen: Turtle = Turtle()
+        self.score_pen.hideturtle()
+        self.score_pen.color("#f0f255")
+        self.score_pen.penup()
+        self.score_pen.goto(-350, 350)
+
+        self.update_score()
+        self.screen = screen
+        self.screen.tracer(0)
+
 
         self.game_over: bool = True # I'll use this for stoping the game after Game over pop up at the screen
         if not self._handle_game_over:
@@ -99,8 +115,9 @@ class Ball:
             self._handle_paddle()
             self._handle_bricks()
 
+        self.screen.update()
         # schedule next frame
-        self.ball.getscreen().ontimer(self._tick, 20)
+        self.ball.getscreen().ontimer(self._tick, 17) # t: 16 or 17, will feel like 60fps
 
     # --- collisions ---
     def _handle_walls(self) -> None:
@@ -114,7 +131,7 @@ class Ball:
         Returns:
             None
         """
-        screen = self.ball.getscreen()
+        screen: TurtleScreen = self.ball.getscreen()
         half_w: float = screen.window_width() / 2
         half_h: float = screen.window_height() / 2
 
@@ -151,7 +168,7 @@ class Ball:
         if self.ball.ycor() <= self._bottom_limit:
             self.ball.goto(0, 0)
             self.ball.clear()
-            self.ball.write("Game Over", align="center", font=("Pixeltype", 50, "bold"))
+            self.ball.write("Game Over", align="center", font=(self.hub_font, 50, "bold"))
             # simple reset (you can call back to Game for score/lives)
             self.ball_reset()
             return True
@@ -188,7 +205,7 @@ class Ball:
             self.vy *= -1
             self.ball.sety(paddle_top + self.radius) # place the ball just above to avoid double-collision next frame
 
-            hit_offset = (x - px) / (paddle_width / 2)  # -1..1
+            hit_offset: float = (x - px) / (paddle_width / 2)  # -1..1
             self.vx += hit_offset * 0.8  # tweak to taste
             # cap vx a bit so it doesn't explode
             self.vx: float = max(min(self.vx, 8), -8)
@@ -230,8 +247,7 @@ class Ball:
                 else:
                     self.vx *= -1  # hit left/right face
 
-                self.score += 1 # Adding score to the game when ball hit the bricks
-                self.ball.getscreen().ontimer(self.score_font, 20)
+                self.add_score()
 
                 bt.hideturtle() # remove brick
                 b["alive"]: bool = False
@@ -243,17 +259,22 @@ class Ball:
                 break  # only one brick per frame
 
 
-    def score_font(self) -> None:
+    def update_score(self) -> None:
         """
-        This function will make new Turtle object for writing the Score
+        This function will display the score and updated score on screen
 
         :return: None
         """
-        t = Turtle()
-        t.speed(0)
-        t.hideturtle()
-        t.color("#f0f255")
-        t.penup()
-        t.goto(-350, 350)
-        t.clear() # TODO: (Problem) The problem is that this does not clean the previous writing; It over writing on it
-        t.write(f"Score: {self.score}", align="left", font=("Pixeltype", 30, "bold"))
+        self.score_pen.clear()
+        self.score_pen.write(f"Score: {self.score}", align="left", font=(self.hub_font, 30, "bold"))
+
+    def add_score(self, points: int = 1) -> None:
+        """
+        This function will update the score by adding point to it. (If it uses in function like _handle_bricks()
+         that detect the collision, then it will add points to score.)
+
+        :param points: (Integer) It can be any number but by default it is 1
+        :return: None
+        """
+        self.score += int(points)
+        self.update_score()
