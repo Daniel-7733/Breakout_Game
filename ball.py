@@ -43,7 +43,8 @@ class Ball:
 
         # external refs
         self.paddle: Turtle | None = None
-        self.bricks: list[dict[str, Turtle | float | bool]] = [] # list of dicts from Brick.get_bricks(): [{"t": Turtle, "half_w": float, "half_h": float, "alive": bool}]
+        # list of dicts from Brick.get_bricks(): [{"t": Turtle, "half_w": float, "half_h": float, "alive": bool}]
+        self.bricks: list[dict[str, Turtle | float | bool]] = []
 
         self.ball_reset()
 
