@@ -32,11 +32,13 @@ class Game:
         self.ball: Ball = Ball(screen=self.screen)
         self.brick: Brick = Brick()
 
+        self.is_running: bool = True
+
         # Wire references
         self.ball.set_paddle(self.paddle.paddle)
         self.ball.set_bricks(self.brick.get_bricks())
 
-        # Input
+        # ---------------------- Input ----------------------
         # right and left arrow in keyboard
         self.screen.listen()
         self.screen.onkeypress(self.paddle.move_left, "Left")
@@ -44,6 +46,25 @@ class Game:
         # WASD:
         self.screen.onkeypress(self.paddle.move_left, "a")
         self.screen.onkeypress(self.paddle.move_right, "d")
+
+        self._tick()
+
+
+    def _tick(self) -> None:
+        """
+        This function force the main game loop called repeatedly via ontimer
+
+        :return: None
+        """
+        if not self.ball.is_game_over: # normal game update
+            self.ball.handle_bricks()
+            self.ball.handle_paddle()
+        else: # Game over logic: disable paddle once
+            self.paddle.enabled = False
+            self.paddle.reset_position()
+        self.screen.update()
+        self.screen.ontimer(self._tick, 16)
+
 
     def start(self) -> None:
         """

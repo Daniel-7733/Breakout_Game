@@ -1,4 +1,4 @@
-from turtle import Turtle
+from turtle import Turtle, TurtleScreen
 
 
 class Paddle:
@@ -13,14 +13,26 @@ class Paddle:
         self.paddle.shapesize(stretch_wid=1.0, stretch_len=6.0) # height ~20px * 1, width ~20px * 6 => ~120px wide
         self.paddle.speed(0)
         self.paddle.goto(0, -320)
+
         self.step: int = 30  # movement config: pixels per keypress (Speed)
+        self.enabled: bool = True # control flag
+
+
+    def reset_position(self) -> None:
+        """
+        Reposition the paddle and turn off and in addition, will change the value of enabled to false
+
+        :return: None
+        """
+        self.paddle.goto(0, -320)
+        self.enabled = False
 
     def move_left(self) -> None:
         """
         Move to left when a key press by user
         :return: None
         """
-        screen = self.paddle.getscreen()
+        screen: TurtleScreen = self.paddle.getscreen()
         half_w: float = screen.window_width() / 2
         width_px: float = 20 * self.paddle.shapesize()[1]
         left_limit: float = -half_w + width_px / 2
@@ -32,7 +44,7 @@ class Paddle:
         Move to right when a key press by user
         :return: None
         """
-        screen = self.paddle.getscreen()
+        screen: TurtleScreen = self.paddle.getscreen()
         half_w: float = screen.window_width() / 2
         width_px: float = 20 * self.paddle.shapesize()[1]
         right_limit: float = half_w - width_px / 2

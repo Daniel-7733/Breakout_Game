@@ -1,6 +1,7 @@
 from turtle import Turtle, _Screen, TurtleScreen
 
 
+
 class Ball:
     """
     Velocity-based ball movement (vx, vy) with:
@@ -38,9 +39,7 @@ class Ball:
         self.screen.tracer(0)
 
 
-        self.game_over: bool = True # I'll use this for stoping the game after Game over pop up at the screen
-        if not self._handle_game_over:
-            self.game_over = False
+        self.is_game_over: bool = False
 
         # external refs
         self.paddle: Turtle | None = None
@@ -62,6 +61,7 @@ class Ball:
         """
         self.paddle = paddle_turtle
 
+
     def set_bricks(self, bricks: list[dict[str, Turtle | float | bool]]) -> None:
         """
         Assign the list of bricks that the ball can interact with.
@@ -78,6 +78,7 @@ class Ball:
         """
         self.bricks = bricks or []
 
+
     # --- control ---
     def ball_reset(self) -> None:
         """
@@ -87,12 +88,14 @@ class Ball:
         self.ball.goto(0, -280)
         self.vy = abs(self.vy) # ensure upward start after reset
 
+
     def start(self) -> None:
         """
         Paddle & ball start at the same time after the bricks completed. (20 Millisecond)
         :return: None
         """
         self.ball.getscreen().ontimer(self._tick, 20) # kick off the timer loop
+
 
     def _tick(self) -> None:
         """
@@ -112,12 +115,13 @@ class Ball:
         # collisions
         self._handle_walls() # may clamp and invert
         if not self._handle_game_over():  # returns True if it reset / ended
-            self._handle_paddle()
-            self._handle_bricks()
+            self.handle_paddle()
+            self.handle_bricks()
 
         self.screen.update()
         # schedule next frame
         self.ball.getscreen().ontimer(self._tick, 17) # t: 16 or 17, will feel like 60fps
+
 
     # --- collisions ---
     def _handle_walls(self) -> None:
@@ -153,6 +157,7 @@ class Ball:
         # store for game-over check
         self._bottom_limit: float = bottom
 
+
     def _handle_game_over(self) -> bool:
         """
         Check if the ball has fallen below the visible playfield.
@@ -166,15 +171,23 @@ class Ball:
         """
         # fell below the visible playfield?
         if self.ball.ycor() <= self._bottom_limit:
+            self.is_game_over = True
+            self.paddle.enabled = False
             self.ball.goto(0, 0)
             self.ball.clear()
             self.ball.write("Game Over", align="center", font=(self.hub_font, 50, "bold"))
             # simple reset (you can call back to Game for score/lives)
+
+            # stoping the ball speed & reset the ball position
             self.ball_reset()
+            self.vx = 0
+            self.vy = 0
+            self.is_game_over = True
             return True
         return False
 
-    def _handle_paddle(self) -> None:
+
+    def handle_paddle(self) -> None:
         """
         Detect and respond to collisions between the ball and the paddle.
 
@@ -208,9 +221,10 @@ class Ball:
             hit_offset: float = (x - px) / (paddle_width / 2)  # -1..1
             self.vx += hit_offset * 0.8  # tweak to taste
             # cap vx a bit so it doesn't explode
-            self.vx: float = max(min(self.vx, 8), -8)
+            self.vx = max(min(self.vx, 8), -8)
 
-    def _handle_bricks(self) -> None:
+
+    def handle_bricks(self) -> None:
         """
         Detect and handle collisions between the ball and bricks.
 
@@ -267,6 +281,7 @@ class Ball:
         """
         self.score_pen.clear()
         self.score_pen.write(f"Score: {self.score}", align="left", font=(self.hub_font, 30, "bold"))
+
 
     def add_score(self, points: int = 1) -> None:
         """
