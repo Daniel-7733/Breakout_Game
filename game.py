@@ -29,13 +29,14 @@ class Game:
 
         # Create game objects
         self.paddle: Paddle = Paddle()
-        self.ball: Ball = Ball(screen=self.screen)
+        self.ball: Ball = Ball(screen=self.screen, paddle_turtle=self.paddle.paddle)
         self.brick: Brick = Brick()
 
         self.is_running: bool = True
 
         # Wire references
-        self.ball.set_paddle(self.paddle.paddle)
+        self.total_lives: int = self.brick.brick_length
+        self.ball.total_bricks(count=self.total_lives)
         self.ball.set_bricks(self.brick.get_bricks())
 
         # ---------------------- Input ----------------------

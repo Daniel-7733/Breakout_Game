@@ -16,7 +16,7 @@ class Brick:
         self.bricks: list[dict[str, Turtle | float | bool]] = []  # list of dicts: {"t": Turtle, "half_w": float, "half_h": float, "alive": bool}
         self._build_grid()
         self.brick_length = len(self.bricks)
-        self.dead_count = sum(1 for brick in self.bricks if not brick["alive"])
+        self.live_count = sum(1 for brick in self.bricks if brick["alive"])
 
     def _new_brick(self, cx: int, cy: int) -> dict[str, Turtle | float | bool]:
         """
