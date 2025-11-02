@@ -66,6 +66,4 @@ python main.py
 - [ ] Code refactors (separate constants, collision helper functions, etc.)
 
 ---
-## Note: Font are download from internet and it was free
----
 👨‍💻 Created as a practice project to learn Python and GitHub. Built with by Daniel
